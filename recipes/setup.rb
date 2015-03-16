@@ -18,12 +18,9 @@
 # limitations under the License.
 #
 
-include_recipe "mongodb::10gen_repo"
-
-node.set['build_essential']['compiletime'] = true
 include_recipe "build-essential"
-
 include_recipe "git"
+
 gem_package "bundler"
 
 group node['errbit']['group']
@@ -40,36 +37,11 @@ end
 
 # Exporting the SECRET_TOKEN env var
 secret_token = rand(8**256).to_s(36).ljust(8,'a')[0..150]
-# execute "set SECRET_TOKEN var" do
-#   command "echo 'export SECRET_TOKEN=#{secret_token}' >> ~/.bash_profile"
-#   not_if "grep SECRET_TOKEN ~/.bash_profile"
-# end
+
 file "/etc/profile.d/errbit_env.sh" do
   mode "0644"
   action :create_if_missing
   content "export SECRET_TOKEN=#{secret_token}\nexport RAILS_ENV=production\nexport RACK_ENV=production\n"
-end
-
-# execute "set RAILS_ENV var" do
-#   command "echo 'export RAILS_ENV=production' >> ~/.bash_profile"
-#   not_if "grep RAILS_ENV ~/.bash_profile"
-# end
-
-# execute "set RACK_ENV var" do
-#   command "echo 'export RACK_ENV=production' >> ~/.bash_profile"
-#   not_if "grep RACK_ENV ~/.bash_profile"
-# end
-
-execute "update sources list" do
-  command "apt-get update"
-  action :nothing
-end.run_action(:run)
-
-%w(libxml2-dev libxslt1-dev libcurl4-gnutls-dev).each do |pkg|
-  r = package pkg do
-    action :nothing
-  end
-  r.run_action(:install)
 end
 
 directory node['errbit']['deploy_to'] do
@@ -129,8 +101,6 @@ template "#{node['errbit']['deploy_to']}/shared/config/mongoid.yml" do
     host: node['errbit']['db']['host'],
     port: node['errbit']['db']['port'],
     database: node['errbit']['db']['database']
-    # username: node['errbit']['db']['username'],
-    # password: node['errbit']['db']['password']
   })
 end
 
@@ -172,7 +142,7 @@ deploy_revision node['errbit']['deploy_to'] do
       environment ({'RAILS_ENV' => node['errbit']['environment']})
     end
   end
-  # git_ssh_wrapper "wrap-ssh4git.sh"
+
   scm_provider Chef::Provider::Git
 end
 
@@ -181,10 +151,8 @@ template "#{node['nginx']['dir']}/sites-available/#{node['errbit']['name']}" do
   owner "root"
   group "root"
   mode 00644
-  # variables( server_names: ['example.com', 'www.example.com'] )
 end
 
 nginx_site node['errbit']['name'] do
   enable true
 end
-

@@ -27,7 +27,6 @@ node.default[:unicorn][:tcp_nodelay]      = true
 node.default[:unicorn][:backlog]          = 100
 node.default[:unicorn][:tcp_nopush]       = true
 node.default[:unicorn][:tries]            = 3
-# node.default[:unicorn][:delay]            = 100
 
 Chef::Log.info "-" * 70
 Chef::Log.info "Unicorn Config"
@@ -47,15 +46,9 @@ template "/etc/init.d/unicorn_#{node['errbit']['name']}" do
 end
 
 service "unicorn_#{node['errbit']['name']}" do
-  provider Chef::Provider::Service::Init::Debian
-  start_command   "/etc/init.d/unicorn_#{node['errbit']['name']} start"
-  stop_command    "/etc/init.d/unicorn_#{node['errbit']['name']} stop"
-  restart_command "/etc/init.d/unicorn_#{node['errbit']['name']} restart"
-  status_command  "/etc/init.d/unicorn_#{node['errbit']['name']} status"
   supports :start => true, :stop => true, :restart => true, :status => true
   action :nothing
 end
-
 
 # Restarting the unicorn
 service "unicorn_#{node['errbit']['name']}" do
