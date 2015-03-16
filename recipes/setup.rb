@@ -20,6 +20,7 @@
 
 include_recipe "build-essential"
 include_recipe "git"
+include_recipe "nginx"
 
 gem_package "bundler"
 
